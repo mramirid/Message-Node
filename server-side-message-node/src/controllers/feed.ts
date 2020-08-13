@@ -3,17 +3,31 @@ import { validationResult } from 'express-validator'
 
 import Post from '../models/Post'
 
-export const getPosts: RequestHandler = (_, res) => {
-  res.status(200).json({
-    posts: [{
-      _id: '1',
-      title: 'First Post',
-      content: 'This is the first post',
-      imageUrl: 'images/mekbuk.jpg',
-      creator: { name: 'Amir' },
-      createdAt: new Date()
-    }]
-  })
+export const getPosts: RequestHandler = async (_, res, next) => {
+  try {
+    const posts = await Post.find()
+    res.status(200).json({ message: 'Post fetched', posts })
+  } catch (error) {
+    if (!error.statusCode) error.statusCode = 500
+    next(error)
+  }
+}
+
+export const getPost: RequestHandler = async (req, res, next) => {
+  try {
+    const post = await Post.findById(req.params.postId)
+    if (!post) {
+      const error = new Error('Cound not find post')
+      error.statusCode = 404
+      throw error
+    }
+
+    res.status(200).json({ message: 'Post fetched', post })
+
+  } catch (error) {
+    if (!error.statusCode) error.statusCode = 500
+    next(error)
+  }
 }
 
 export const createPost: RequestHandler = async (req, res, next) => {
@@ -32,7 +46,6 @@ export const createPost: RequestHandler = async (req, res, next) => {
       content: req.body.content,
       creator: { name: 'Amir' },
     })
-
     const saveResult = await post.save()
 
     res.status(201).json({
