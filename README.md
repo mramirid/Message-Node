@@ -1,1 +1,1 @@
-Latihan
+Simple Social Network
