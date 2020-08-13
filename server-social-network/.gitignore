@@ -1,0 +1,12 @@
+# Ignore all js files
+node_modules
+dist/**/**.js
+dist/**/**.js.map
+dist/data
+
+# Don't ignore the client side js files
+!dist/public/**.js
+
+# Ignore config files
+package-lock.json
+.env

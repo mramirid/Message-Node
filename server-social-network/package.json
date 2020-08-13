@@ -1,0 +1,24 @@
+{
+  "name": "server-social-network",
+  "version": "1.0.0",
+  "description": "Simple REST API with Node, TypeScript & Express framework",
+  "main": "dist/app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon dist/app.js"
+  },
+  "keywords": [
+    "REST API",
+    "Express"
+  ],
+  "author": "mramirid",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.7",
+    "nodemon": "^2.0.4"
+  }
+}
