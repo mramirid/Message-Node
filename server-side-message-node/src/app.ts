@@ -1,5 +1,7 @@
 import express from 'express'
 import bodyParser from 'body-parser'
+import dotenv from 'dotenv'
+import mongoose from 'mongoose'
 
 import feedRoutes from './routes/feed'
 
@@ -16,4 +18,19 @@ app.use((_, res, next) => {
 
 app.use('/feed', feedRoutes)
 
-app.listen(8080)
+/* ------------ Setup MongoDB connection ------------ */
+dotenv.config()
+const cluster = process.env.CLUSTER_NAME
+const dbname = process.env.DB_NAME
+const username = process.env.DB_USERNAME
+const password = process.env.DB_PASSWORD
+const MONGODB_URL = `mongodb+srv://${username}:${password}@${cluster}.dxksd.mongodb.net/${dbname}?retryWrites=true&w=majority`
+
+mongoose.connect(MONGODB_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(_ => {
+  app.listen(8080)
+}).catch(error => {
+  console.log(error)
+})
