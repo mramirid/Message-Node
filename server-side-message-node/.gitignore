@@ -2,7 +2,8 @@
 node_modules
 dist/**/**.js
 dist/**/**.js.map
-dist/data
+
+dist/images
 
 # Don't ignore the client side js files
 !dist/public/**.js

@@ -4,6 +4,8 @@ import express from 'express'
 import bodyParser from 'body-parser'
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
+import { v4 as uuidv4 } from 'uuid'
+import multer from 'multer'
 
 import activeDir from './utils/path'
 import feedRoutes from './routes/feed'
@@ -19,9 +21,30 @@ declare global {
 /* ---- Setup express extensions & helper middlewares ---- */
 const app = express()
 
-app.use(bodyParser.json())
-
 app.use('/images', express.static(path.join(activeDir, 'images')))
+
+app.use(bodyParser.json())
+app.use(multer({
+  storage: multer.diskStorage({
+    destination: (_, __, callback) => {
+      callback(null, 'dist/images')
+    },
+    filename: (_, file, callback) => {
+      callback(null, `${uuidv4()}-${file.originalname}`)
+    }
+  }),
+  fileFilter: (_, file, callback) => {
+    if (
+      file.mimetype === 'image/png' ||
+      file.mimetype === 'image/jpg' ||
+      file.mimetype === 'image/jpeg'
+    ) {
+      callback(null, true)
+    } else {
+      callback(null, false)
+    }
+  }
+}).single('image'))
 
 /* -------------- Setup our middlewares ------------------ */
 app.use((_, res, next) => {
