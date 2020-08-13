@@ -16,33 +16,32 @@ export const getPosts: RequestHandler = (_, res) => {
   })
 }
 
-export const createPost: RequestHandler = async (req, res) => {
+export const createPost: RequestHandler = async (req, res, next) => {
   const inputErrors = validationResult(req)
 
   if (!inputErrors.isEmpty()) {
-    return res.status(422).json({
-      message: 'Validation failed, entered data is incorrect',
-      errors: inputErrors.array()
-    })
+    const error = new Error('Validation failed, entered data is incorrect')
+    error.statusCode = 422
+    return next(error)
   }
 
   try {
-    const title = req.body.title
-    const content = req.body.content
-
     const post = new Post({
-      title,
-      content,
+      title: req.body.title,
       imageUrl: 'images/mekbuk.jpg',
+      content: req.body.content,
       creator: { name: 'Amir' },
     })
+
     const saveResult = await post.save()
 
     res.status(201).json({
       message: 'Post created succefully',
       post: saveResult
     })
+
   } catch (error) {
-    console.log(error)
+    if (!error.statusCode) error.statusCode = 500
+    next(error)
   }
 }

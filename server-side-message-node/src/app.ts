@@ -1,14 +1,29 @@
+import path from 'path'
+
 import express from 'express'
 import bodyParser from 'body-parser'
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
 
+import activeDir from './utils/path'
 import feedRoutes from './routes/feed'
+import * as errorController from './controllers/error'
 
+/* ------------ Customize built-in interfaces ------------ */
+declare global {
+  export interface Error {
+    statusCode: number
+  }
+}
+
+/* ---- Setup express extensions & helper middlewares ---- */
 const app = express()
 
 app.use(bodyParser.json())
 
+app.use('/images', express.static(path.join(activeDir, 'images')))
+
+/* -------------- Setup our middlewares ------------------ */
 app.use((_, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST')
@@ -17,8 +32,9 @@ app.use((_, res, next) => {
 })
 
 app.use('/feed', feedRoutes)
+app.use(errorController.serverErrorHandler)
 
-/* ------------ Setup MongoDB connection ------------ */
+/* ------- Setup MongoDB connection & start sever -------- */
 dotenv.config()
 const cluster = process.env.CLUSTER_NAME
 const dbname = process.env.DB_NAME
