@@ -19,6 +19,12 @@ export const createPost: RequestHandler = (req, res) => {
 
   res.status(201).json({
     message: 'Post created succefully',
-    post: { id: new Date().toISOString(), title, content }
+    post: {
+      _id: new Date().toISOString(),
+      title,
+      content,
+      creator: { name: 'Amir' },
+      createdAt: new Date()
+    }
   })
 }
