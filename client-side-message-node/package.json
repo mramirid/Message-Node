@@ -1,5 +1,6 @@
 {
-  "name": "node-complete-social-network-prep",
+  "name": "client-side-message-node",
+  "description": "Client side implementation of Message Node app built with ReactJS",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

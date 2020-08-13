@@ -1,3 +1,3 @@
-# Simple Social Network
+# Message Node
 
-Simple social network app with MERN stack
+Simple social network app built with MERN stack
