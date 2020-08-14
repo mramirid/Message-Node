@@ -7,11 +7,12 @@ import mongoose from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 import multer from 'multer'
 
-import activeDir from './utils/path'
+import activeDir from './utils/active-dir'
 import feedRoutes from './routes/feed'
 import * as errorController from './controllers/error'
 
 /* ------------ Customize built-in interfaces ------------ */
+
 declare global {
   export interface Error {
     statusCode: number
@@ -19,9 +20,10 @@ declare global {
 }
 
 /* ---- Setup express extensions & helper middlewares ---- */
+
 const app = express()
 
-app.use('/images', express.static(path.join(activeDir, 'images')))
+app.use('/dist/images', express.static(path.join(activeDir, 'images')))
 
 app.use(bodyParser.json())
 app.use(multer({
@@ -47,9 +49,10 @@ app.use(multer({
 }).single('image'))
 
 /* -------------- Setup our middlewares ------------------ */
+
 app.use((_, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   next()
 })
@@ -58,6 +61,7 @@ app.use('/feed', feedRoutes)
 app.use(errorController.serverErrorHandler)
 
 /* ------- Setup MongoDB connection & start sever -------- */
+
 dotenv.config()
 const cluster = process.env.CLUSTER_NAME
 const dbname = process.env.DB_NAME

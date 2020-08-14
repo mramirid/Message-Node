@@ -14,15 +14,13 @@ class SinglePost extends Component {
 
   async componentDidMount() {
     const postId = this.props.match.params.postId
-
+    
     const res = await fetch(`http://localhost:8080/feed/post/${postId}`)
-
     if (res.status !== 200) {
       throw new Error('Failed to fetch status')
     }
 
     const resData = await res.json()
-
     this.setState({
       title: resData.post.title,
       author: resData.post.creator.name,

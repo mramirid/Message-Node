@@ -37,34 +37,44 @@ class Feed extends Component {
     this.loadPosts()
   }
 
-  loadPosts = direction => {
+  loadPosts = async direction => {
     if (direction) {
       this.setState({ postsLoading: true, posts: [] })
     }
+
     let page = this.state.postPage
+
     if (direction === 'next') {
       page++
       this.setState({ postPage: page })
     }
+
     if (direction === 'previous') {
       page--
       this.setState({ postPage: page })
     }
-    fetch('http://localhost:8080/feed/posts')
-      .then(res => {
-        if (res.status !== 200) {
-          throw new Error('Failed to fetch posts.')
-        }
-        return res.json()
+
+    try {
+      const res = await fetch('http://localhost:8080/feed/posts')
+      if (res.status !== 200) {
+        throw new Error('Failed to fetch posts.')
+      }
+
+      const resData = await res.json()
+      this.setState({
+        posts: resData.posts.map(post => {
+          return {
+            ...post,
+            imagePath: post.imageUrl
+          }
+        }),
+        totalPosts: resData.totalItems,
+        postsLoading: false
       })
-      .then(resData => {
-        this.setState({
-          posts: resData.posts,
-          totalPosts: resData.totalItems,
-          postsLoading: false
-        })
-      })
-      .catch(this.catchError)
+
+    } catch (error) {
+      this.catchError(error)
+    }
   }
 
   statusUpdateHandler = event => {
@@ -113,7 +123,10 @@ class Feed extends Component {
 
     let method = 'POST'
     let url = 'http://localhost:8080/feed/post'
-    if (this.state.editPost) url = 'URL'
+    if (this.state.editPost) {
+      method = 'PUT'
+      url = `http://localhost:8080/feed/post/${this.state.editPost._id}`
+    } 
 
     try {
       const res = await fetch(url, { method, body: formData })
@@ -123,6 +136,7 @@ class Feed extends Component {
       }
 
       const resData = await res.json()
+      console.log(resData)
       const post = {
         _id: resData.post._id,
         title: resData.post.title,
