@@ -5,10 +5,20 @@ import slash from 'slash'
 import Post from '../models/Post'
 import removeImage from '../utils/clear-image'
 
-export const getPosts: RequestHandler = async (_, res, next) => {
+export const getPosts: RequestHandler = async (req, res, next) => {
   try {
-    const posts = await Post.find()
-    res.status(200).json({ message: 'Post fetched', posts })
+    const currentPage = req.query.page ? +req.query.page : 1
+    const itemsPerPage = 2
+    const [posts, totalItems] = await Promise.all([
+      Post.find().skip((currentPage - 1) * itemsPerPage).limit(itemsPerPage),
+      Post.find().countDocuments()
+    ])
+
+    res.status(200).json({
+      message: 'Post fetched',
+      posts,
+      totalItems
+    })
   } catch (error) {
     if (!error.statusCode) error.statusCode = 500
     next(error)

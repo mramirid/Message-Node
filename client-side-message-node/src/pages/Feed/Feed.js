@@ -55,7 +55,7 @@ class Feed extends Component {
     }
 
     try {
-      const res = await fetch('http://localhost:8080/feed/posts')
+      const res = await fetch(`http://localhost:8080/feed/posts?page=${page}`)
       if (res.status !== 200) {
         throw new Error('Failed to fetch posts.')
       }
