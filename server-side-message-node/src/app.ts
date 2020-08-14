@@ -6,16 +6,19 @@ import dotenv from 'dotenv'
 import mongoose from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 import multer from 'multer'
+import { ValidationError } from 'express-validator/src/base'
 
 import activeDir from './utils/active-dir'
 import feedRoutes from './routes/feed'
+import authRoutes from './routes/auth'
 import * as errorController from './controllers/error'
 
 /* ------------ Customize built-in interfaces ------------ */
 
 declare global {
   export interface Error {
-    statusCode: number
+    statusCode?: number
+    inputErrors?: ValidationError[]
   }
 }
 
@@ -58,6 +61,7 @@ app.use((_, res, next) => {
 })
 
 app.use('/feed', feedRoutes)
+app.use('/auth', authRoutes)
 app.use(errorController.serverErrorHandler)
 
 /* ------- Setup MongoDB connection & start sever -------- */

@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose'
 
-interface IPost extends Document {
-  _id: string
+export interface IPost extends Document {
+  _id: Schema.Types.ObjectId
   title: string
   imageUrl: string
   content: string

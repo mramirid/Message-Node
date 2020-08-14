@@ -19,6 +19,7 @@ export const getPosts: RequestHandler = async (req, res, next) => {
       posts,
       totalItems
     })
+
   } catch (error) {
     if (!error.statusCode) error.statusCode = 500
     next(error)
@@ -44,7 +45,6 @@ export const getPost: RequestHandler = async (req, res, next) => {
 
 export const createPost: RequestHandler = async (req, res, next) => {
   const inputErrors = validationResult(req)
-
   if (!inputErrors.isEmpty()) {
     const error = new Error('Validation failed, entered data is incorrect')
     error.statusCode = 422
@@ -79,7 +79,6 @@ export const createPost: RequestHandler = async (req, res, next) => {
 
 export const updatePost: RequestHandler = async (req, res, next) => {
   const inputErrors = validationResult(req)
-
   if (!inputErrors.isEmpty()) {
     const error = new Error('Validation failed, entered data is incorrect')
     error.statusCode = 422
