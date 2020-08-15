@@ -11,7 +11,10 @@ export const getPosts: RequestHandler = async (req, res, next) => {
     const currentPage = req.query.page ? +req.query.page : 1
     const itemsPerPage = 2
     const [posts, totalItems] = await Promise.all([
-      Post.find().skip((currentPage - 1) * itemsPerPage).limit(itemsPerPage),
+      Post.find()
+        .populate('creator')
+        .skip((currentPage - 1) * itemsPerPage)
+        .limit(itemsPerPage),
       Post.find().countDocuments()
     ])
 
@@ -28,7 +31,7 @@ export const getPosts: RequestHandler = async (req, res, next) => {
 
 export const getPost: RequestHandler = async (req, res, next) => {
   try {
-    const post = await Post.findById(req.params.postId)
+    const post = await Post.findById(req.params.postId).populate('creator')
     if (!post) {
       const error = new Error('Could not find post')
       error.statusCode = 404

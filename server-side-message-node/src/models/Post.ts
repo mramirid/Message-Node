@@ -1,11 +1,13 @@
 import mongoose, { Schema, Document, Types } from 'mongoose'
 
+import { IUser } from './User'
+
 export interface IPost extends Document {
   _id: Types.ObjectId
   title: string
   imageUrl: string
   content: string
-  creator: Types.ObjectId
+  creator: IUser | Types.ObjectId
   createdAt: Date
   updatedAt: Date
 }

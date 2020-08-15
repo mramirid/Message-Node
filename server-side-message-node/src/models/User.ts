@@ -2,7 +2,7 @@ import mongoose, { Schema, Document, Types } from 'mongoose'
 
 import { IPost } from './Post'
 
-interface IUser extends Document {
+export interface IUser extends Document {
   _id: Types.ObjectId
   email: string
   password: string
