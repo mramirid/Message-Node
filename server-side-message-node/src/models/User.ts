@@ -8,7 +8,7 @@ interface IUser extends Document {
   password: string
   name: string
   status: string
-  posts: (IPost | Types.ObjectId)[]
+  posts:  Types.Array<IPost | Types.ObjectId>
 }
 
 const userSchema = new Schema<IUser>({

@@ -17,7 +17,7 @@ router.put('/signup',
       .custom(async email => {
         const user = await User.findOne({ email })
         if (user) {
-          Promise.reject('Email address already exists')
+          return Promise.reject('Email address already exists')
         }
       }),
     body('password')

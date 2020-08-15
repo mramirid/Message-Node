@@ -185,23 +185,25 @@ class Feed extends Component {
   deletePostHandler = async postId => {
     this.setState({ postsLoading: true })
 
-    const res = await fetch(`http://localhost:8080/feed/post/${postId}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${this.props.token}`
-      }
-    })
-    if (res.status !== 200 && res.status !== 201) {
-      throw new Error('Deleting a post failed!')
-    }
-
     try {
+      const res = await fetch(`http://localhost:8080/feed/post/${postId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${this.props.token}`
+        }
+      })
+
+      if (res.status !== 200 && res.status !== 201) {
+        throw new Error('Deleting a post failed!')
+      }
+
       const resData = await res.json()
       console.log(resData)
       this.setState(prevState => {
         const updatedPosts = prevState.posts.filter(p => p._id !== postId)
         return { posts: updatedPosts, postsLoading: false }
       })
+
     } catch (err) {
       console.log(err)
       this.setState({ postsLoading: false })

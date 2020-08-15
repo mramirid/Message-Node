@@ -113,6 +113,12 @@ export const updatePost: RequestHandler = async (req, res, next) => {
       throw error
     }
 
+    if (post.creator.toString() !== req.userId.toString()) {
+      const error = new Error('Not authorized')
+      error.statusCode = 403
+      throw error
+    }
+
     if (imageUrl !== post.imageUrl) {
       await removeImage(post.imageUrl)
     }
@@ -142,10 +148,20 @@ export const deletePost: RequestHandler = async (req, res, next) => {
       throw error
     }
 
+    if (post.creator.toString() !== req.userId.toString()) {
+      const error = new Error('Not authorized')
+      error.statusCode = 403
+      throw error
+    }
+
     const [deletedPost] = await Promise.all([
       Post.findByIdAndRemove(postId),
       removeImage(post.imageUrl)
     ])
+
+    const user = await User.findById(req.userId)
+    user!.posts.pull(postId)
+    await user!.save()
 
     res.status(200).json({
       message: 'Deleted post',
