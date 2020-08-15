@@ -3,7 +3,7 @@ import { validationResult } from 'express-validator'
 import slash from 'slash'
 
 import Post from '../models/Post'
-import removeImage from '../utils/clear-image'
+import removeImage from '../utils/remove-image'
 
 export const getPosts: RequestHandler = async (req, res, next) => {
   try {
@@ -21,7 +21,6 @@ export const getPosts: RequestHandler = async (req, res, next) => {
     })
 
   } catch (error) {
-    if (!error.statusCode) error.statusCode = 500
     next(error)
   }
 }
@@ -30,7 +29,7 @@ export const getPost: RequestHandler = async (req, res, next) => {
   try {
     const post = await Post.findById(req.params.postId)
     if (!post) {
-      const error = new Error('Cound not find post')
+      const error = new Error('Could not find post')
       error.statusCode = 404
       throw error
     }
@@ -38,7 +37,6 @@ export const getPost: RequestHandler = async (req, res, next) => {
     res.status(200).json({ message: 'Post fetched', post })
 
   } catch (error) {
-    if (!error.statusCode) error.statusCode = 500
     next(error)
   }
 }
@@ -72,7 +70,6 @@ export const createPost: RequestHandler = async (req, res, next) => {
     })
 
   } catch (error) {
-    if (!error.statusCode) error.statusCode = 500
     next(error)
   }
 }
@@ -99,7 +96,7 @@ export const updatePost: RequestHandler = async (req, res, next) => {
   try {
     const post = await Post.findById(postId)
     if (!post) {
-      const error = new Error('Cound not find post')
+      const error = new Error('Could not find post')
       error.statusCode = 404
       throw error
     }
@@ -119,7 +116,31 @@ export const updatePost: RequestHandler = async (req, res, next) => {
     })
 
   } catch (error) {
-    if (!error.statusCode) error.statusCode = 500
+    next(error)
+  }
+}
+
+export const deletePost: RequestHandler = async (req, res, next) => {
+  try {
+    const postId = req.params.postid
+    const post = await Post.findById(postId)
+    if (!post) {
+      const error = new Error('Could not find post')
+      error.statusCode = 404
+      throw error
+    }
+
+    const [deletedPost] = await Promise.all([
+      Post.findByIdAndRemove(postId),
+      removeImage(post.imageUrl)
+    ])
+
+    res.status(200).json({
+      message: 'Deleted post',
+      post: deletedPost
+    })
+
+  } catch (error) {
     next(error)
   }
 }

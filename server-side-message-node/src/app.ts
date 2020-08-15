@@ -20,6 +20,12 @@ declare global {
     statusCode?: number
     inputErrors?: ValidationError[]
   }
+
+  namespace Express {
+    export interface Request {
+      userId: string
+    }
+  }
 }
 
 /* ---- Setup express extensions & helper middlewares ---- */

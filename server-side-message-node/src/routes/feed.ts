@@ -1,17 +1,19 @@
 import express from 'express'
 import { body } from 'express-validator'
 
+import isAuth from '../middlewares/is-auth'
 import * as feedController from '../controllers/feed'
 
 const router = express.Router()
 
 /* ------------ Sub routes /feed/route_name ------------ */
 
-router.get('/posts', feedController.getPosts)
+router.get('/posts', isAuth, feedController.getPosts)
 
-router.get('/post/:postId', feedController.getPost)
+router.get('/post/:postId', isAuth, feedController.getPost)
 
 router.post('/post',
+  isAuth,
   [
     body('title')
       .trim()
@@ -24,6 +26,7 @@ router.post('/post',
 )
 
 router.put('/post/:postId',
+  isAuth,
   [
     body('title')
       .trim()
@@ -34,5 +37,7 @@ router.put('/post/:postId',
   ],
   feedController.updatePost
 )
+
+router.delete('/post/:postId', isAuth, feedController.deletePost)
 
 export default router

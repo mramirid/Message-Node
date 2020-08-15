@@ -38,24 +38,24 @@ class Feed extends Component {
   }
 
   loadPosts = async direction => {
-    if (direction) {
-      this.setState({ postsLoading: true, posts: [] })
-    }
-
+    if (direction) this.setState({ postsLoading: true, posts: [] })
     let page = this.state.postPage
-
     if (direction === 'next') {
       page++
       this.setState({ postPage: page })
     }
-
     if (direction === 'previous') {
       page--
       this.setState({ postPage: page })
     }
 
     try {
-      const res = await fetch(`http://localhost:8080/feed/posts?page=${page}`)
+      const res = await fetch(`http://localhost:8080/feed/posts?page=${page}`, {
+        headers: {
+          Authorization: `Bearer ${this.props.token}`
+        }
+      })
+
       if (res.status !== 200) {
         throw new Error('Failed to fetch posts.')
       }
@@ -126,10 +126,14 @@ class Feed extends Component {
     if (this.state.editPost) {
       method = 'PUT'
       url = `http://localhost:8080/feed/post/${this.state.editPost._id}`
-    } 
+    }
 
     try {
-      const res = await fetch(url, { method, body: formData })
+      const res = await fetch(url, {
+        method,
+        header: { Authorization: `Bearer ${this.props.token}` },
+        body: formData
+      })
 
       if (res.status !== 200 && res.status !== 201) {
         throw new Error('Creating or editing a post failed!')
@@ -178,26 +182,30 @@ class Feed extends Component {
     this.setState({ status: value })
   }
 
-  deletePostHandler = postId => {
+  deletePostHandler = async postId => {
     this.setState({ postsLoading: true })
-    fetch('URL')
-      .then(res => {
-        if (res.status !== 200 && res.status !== 201) {
-          throw new Error('Deleting a post failed!')
-        }
-        return res.json()
+
+    const res = await fetch(`http://localhost:8080/feed/post/${postId}`, { 
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${this.props.token}`
+      }
+    })
+    if (res.status !== 200 && res.status !== 201) {
+      throw new Error('Deleting a post failed!')
+    }
+
+    try {
+      const resData = await res.json()
+      console.log(resData)
+      this.setState(prevState => {
+        const updatedPosts = prevState.posts.filter(p => p._id !== postId)
+        return { posts: updatedPosts, postsLoading: false }
       })
-      .then(resData => {
-        console.log(resData)
-        this.setState(prevState => {
-          const updatedPosts = prevState.posts.filter(p => p._id !== postId)
-          return { posts: updatedPosts, postsLoading: false }
-        })
-      })
-      .catch(err => {
-        console.log(err)
-        this.setState({ postsLoading: false })
-      })
+    } catch (err) {
+      console.log(err)
+      this.setState({ postsLoading: false })
+    }
   }
 
   errorHandler = () => {
