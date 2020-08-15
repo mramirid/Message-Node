@@ -131,7 +131,7 @@ class Feed extends Component {
     try {
       const res = await fetch(url, {
         method,
-        header: { Authorization: `Bearer ${this.props.token}` },
+        headers: { Authorization: `Bearer ${this.props.token}` },
         body: formData
       })
 
@@ -185,7 +185,7 @@ class Feed extends Component {
   deletePostHandler = async postId => {
     this.setState({ postsLoading: true })
 
-    const res = await fetch(`http://localhost:8080/feed/post/${postId}`, { 
+    const res = await fetch(`http://localhost:8080/feed/post/${postId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${this.props.token}`

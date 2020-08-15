@@ -1,13 +1,14 @@
 import { RequestHandler } from 'express'
 import dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
+import mongoose, { Types } from 'mongoose'
 
 dotenv.config()
 
 interface JWTPayload {
   email: string
   userId: string
-  iat: number,
+  iat: number
   exp: number
 }
 
@@ -26,7 +27,7 @@ const isAuth: RequestHandler = (req, _, next) => {
     throw error
   }
 
-  req.userId = decodedToken.userId
+  req.userId = Types.ObjectId(decodedToken.userId)
   next()
 }
 

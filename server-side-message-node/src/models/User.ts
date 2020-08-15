@@ -1,14 +1,14 @@
-import mongoose, { Schema, Document } from 'mongoose'
+import mongoose, { Schema, Document, Types } from 'mongoose'
 
 import { IPost } from './Post'
 
 interface IUser extends Document {
-  _id: Schema.Types.ObjectId
+  _id: Types.ObjectId
   email: string
   password: string
   name: string
   status: string
-  posts: (IPost & Schema.Types.ObjectId)[]
+  posts: (IPost | Types.ObjectId)[]
 }
 
 const userSchema = new Schema<IUser>({

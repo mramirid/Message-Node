@@ -3,7 +3,7 @@ import path from 'path'
 import express from 'express'
 import bodyParser from 'body-parser'
 import dotenv from 'dotenv'
-import mongoose from 'mongoose'
+import mongoose, { Types } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 import multer from 'multer'
 import { ValidationError } from 'express-validator/src/base'
@@ -23,7 +23,7 @@ declare global {
 
   namespace Express {
     export interface Request {
-      userId: string
+      userId: Types.ObjectId
     }
   }
 }

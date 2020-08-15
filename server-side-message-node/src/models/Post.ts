@@ -1,13 +1,11 @@
-import mongoose, { Schema, Document } from 'mongoose'
+import mongoose, { Schema, Document, Types } from 'mongoose'
 
 export interface IPost extends Document {
-  _id: Schema.Types.ObjectId
+  _id: Types.ObjectId
   title: string
   imageUrl: string
   content: string
-  creator: {
-    name: string
-  }
+  creator: Types.ObjectId
   createdAt: Date
   updatedAt: Date
 }
@@ -27,7 +25,8 @@ const postSchema = new Schema<IPost>(
       required: true
     },
     creator: {
-      type: Object,
+      type: Schema.Types.ObjectId,
+      ref: 'User',
       required: true
     }
   },

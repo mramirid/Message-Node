@@ -3,6 +3,7 @@ import { validationResult } from 'express-validator'
 import slash from 'slash'
 
 import Post from '../models/Post'
+import User from '../models/User'
 import removeImage from '../utils/remove-image'
 
 export const getPosts: RequestHandler = async (req, res, next) => {
@@ -60,13 +61,24 @@ export const createPost: RequestHandler = async (req, res, next) => {
       title: req.body.title,
       imageUrl: slash(req.file.path),
       content: req.body.content,
-      creator: { name: 'Amir' },
+      creator: req.userId,
     })
-    const createdPost = await post.save()
+
+    const [createdPost, user] = await Promise.all([
+      post.save(),
+      User.findById(req.userId)
+    ])
+
+    user!.posts.push(createdPost)
+    const creator = await user!.save()
 
     res.status(201).json({
       message: 'Post created succefully',
-      post: createdPost
+      post: createdPost,
+      creator: {
+        _id: creator._id,
+        name: creator.name
+      }
     })
 
   } catch (error) {
@@ -122,7 +134,7 @@ export const updatePost: RequestHandler = async (req, res, next) => {
 
 export const deletePost: RequestHandler = async (req, res, next) => {
   try {
-    const postId = req.params.postid
+    const postId = req.params.postId
     const post = await Post.findById(postId)
     if (!post) {
       const error = new Error('Could not find post')
