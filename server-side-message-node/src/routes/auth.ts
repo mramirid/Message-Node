@@ -25,7 +25,7 @@ router.put('/signup',
       .isLength({ min: 5 }),
     body('name')
       .trim()
-      .not().isEmpty()
+      .notEmpty()
   ],
   authController.signup
 )
