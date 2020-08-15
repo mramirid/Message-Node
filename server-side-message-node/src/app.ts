@@ -11,6 +11,7 @@ import { ValidationError } from 'express-validator/src/base'
 import activeDir from './utils/active-dir'
 import feedRoutes from './routes/feed'
 import authRoutes from './routes/auth'
+import userRoutes from './routes/user'
 import * as errorController from './controllers/error'
 
 /* ------------ Customize built-in interfaces ------------ */
@@ -68,6 +69,7 @@ app.use((_, res, next) => {
 
 app.use('/feed', feedRoutes)
 app.use('/auth', authRoutes)
+app.use('/user', userRoutes)
 app.use(errorController.serverErrorHandler)
 
 /* ------- Setup MongoDB connection & start sever -------- */

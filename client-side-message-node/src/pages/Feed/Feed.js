@@ -21,18 +21,23 @@ class Feed extends Component {
     editLoading: false
   }
 
-  componentDidMount() {
-    fetch('URL')
-      .then(res => {
-        if (res.status !== 200) {
-          throw new Error('Failed to fetch user status.')
-        }
-        return res.json()
+  async componentDidMount() {
+    try {
+      const res = await fetch('http://localhost:8080/user/status', {
+        headers: { Authorization: `Bearer ${this.props.token}` }
       })
-      .then(resData => {
-        this.setState({ status: resData.status })
-      })
-      .catch(this.catchError)
+
+      if (res.status !== 200) {
+        throw new Error('Failed to fetch user status.')
+      }
+
+      const resData = await res.json()
+      console.log(resData)
+      this.setState({ status: resData.status })
+
+    } catch (error) {
+      this.catchError(error)
+    }
 
     this.loadPosts()
   }
@@ -51,9 +56,7 @@ class Feed extends Component {
 
     try {
       const res = await fetch(`http://localhost:8080/feed/posts?page=${page}`, {
-        headers: {
-          Authorization: `Bearer ${this.props.token}`
-        }
+        headers: { Authorization: `Bearer ${this.props.token}` }
       })
 
       if (res.status !== 200) {
@@ -77,19 +80,29 @@ class Feed extends Component {
     }
   }
 
-  statusUpdateHandler = event => {
+  statusUpdateHandler = async event => {
     event.preventDefault()
-    fetch('URL')
-      .then(res => {
-        if (res.status !== 200 && res.status !== 201) {
-          throw new Error("Can't update status!")
-        }
-        return res.json()
+
+    try {
+      const res = await fetch('http://localhost:8080/user/status', {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${this.props.token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: this.state.status })
       })
-      .then(resData => {
-        console.log(resData)
-      })
-      .catch(this.catchError)
+
+      if (res.status !== 200 && res.status !== 201) {
+        throw new Error("Can't update status!")
+      }
+
+      const resData = await res.json()
+      console.log(resData)
+
+    } catch (error) {
+      this.catchError(error)
+    }
   }
 
   newPostHandler = () => {
@@ -188,9 +201,7 @@ class Feed extends Component {
     try {
       const res = await fetch(`http://localhost:8080/feed/post/${postId}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${this.props.token}`
-        }
+        headers: { Authorization: `Bearer ${this.props.token}` }
       })
 
       if (res.status !== 200 && res.status !== 201) {
