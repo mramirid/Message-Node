@@ -15,7 +15,8 @@ export const getPosts: RequestHandler = async (req, res, next) => {
       Post.find()
         .populate('creator')
         .skip((currentPage - 1) * itemsPerPage)
-        .limit(itemsPerPage),
+        .limit(itemsPerPage)
+        .sort({ createdAt: -1 }),
       Post.find().countDocuments()
     ])
 
@@ -121,14 +122,14 @@ export const updatePost: RequestHandler = async (req, res, next) => {
   }
 
   try {
-    const post = await Post.findById(postId)
+    const post = await Post.findById(postId).populate('creator')
     if (!post) {
       const error = new Error('Could not find post')
       error.statusCode = 404
       throw error
     }
 
-    if (post.creator.toString() !== req.userId.toString()) {
+    if (post.creator._id.toString() !== req.userId.toString()) {
       const error = new Error('Not authorized')
       error.statusCode = 403
       throw error
@@ -142,6 +143,11 @@ export const updatePost: RequestHandler = async (req, res, next) => {
     post.imageUrl = imageUrl
     post.content = content
     const updatedPost = await post.save()
+
+    AppSocket.getIO().emit('posts', {
+      action: 'update',
+      post: updatedPost
+    })
 
     res.status(200).json({
       message: 'Post updated',
@@ -177,6 +183,11 @@ export const deletePost: RequestHandler = async (req, res, next) => {
     const user = await User.findById(req.userId)
     user!.posts.pull(postId)
     await user!.save()
+
+    AppSocket.getIO().emit('posts', {
+      action: 'delete',
+      post: deletedPost!._id.toString()
+    })
 
     res.status(200).json({
       message: 'Deleted post',

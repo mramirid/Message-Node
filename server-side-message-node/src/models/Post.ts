@@ -7,7 +7,7 @@ export interface IPost extends Document {
   title: string
   imageUrl: string
   content: string
-  creator: IUser | Types.ObjectId
+  creator: IUser & Types.ObjectId
   createdAt: Date
   updatedAt: Date
 }
