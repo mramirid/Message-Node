@@ -2,6 +2,7 @@ import { RequestHandler } from 'express'
 import { validationResult } from 'express-validator'
 import slash from 'slash'
 
+import AppSocket from '../utils/AppSocket'
 import Post from '../models/Post'
 import User from '../models/User'
 import removeImage from '../utils/remove-image'
@@ -73,14 +74,25 @@ export const createPost: RequestHandler = async (req, res, next) => {
     ])
 
     user!.posts.push(createdPost)
-    const creator = await user!.save()
+    const updatedUser = await user!.save()
+
+    AppSocket.getIO().emit('posts', {
+      action: 'create',
+      post: {
+        ...createdPost.toObject(),
+        creator: {
+          _id: updatedUser._id,
+          name: updatedUser.name
+        }
+      }
+    })
 
     res.status(201).json({
       message: 'Post created succefully',
       post: createdPost,
       creator: {
-        _id: creator._id,
-        name: creator.name
+        _id: updatedUser._id,
+        name: updatedUser.name
       }
     })
 

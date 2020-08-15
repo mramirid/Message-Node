@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid'
 import multer from 'multer'
 import { ValidationError } from 'express-validator/src/base'
 
+import AppSocket from './utils/AppSocket'
 import activeDir from './utils/active-dir'
 import feedRoutes from './routes/feed'
 import authRoutes from './routes/auth'
@@ -85,7 +86,11 @@ mongoose.connect(MONGODB_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(_ => {
-  app.listen(8080)
+  const server = app.listen(8080)
+  const io = AppSocket.init(server)
+  io.on('connection', _ => {
+    console.log('Client connected')
+  })
 }).catch(error => {
   console.log(error)
 })
