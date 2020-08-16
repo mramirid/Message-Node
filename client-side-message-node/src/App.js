@@ -109,29 +109,38 @@ class App extends Component {
     event.preventDefault()
     this.setState({ authLoading: true })
 
+    const graphqlQuery = {
+      query: `
+        mutation {
+          createUser(
+            userInput: {
+              email: "${authData.signupForm.email.value}", 
+              name: "${authData.signupForm.name.value}", 
+              password: "${authData.signupForm.password.value}"
+            }
+          ) {
+            _id
+            email
+          }
+        }
+      `
+    }
+
     try {
-      const res = await fetch('http://localhost:8080/auth/signup', {
-        method: 'PUT',
+      const res = await fetch('http://localhost:8080/graphql', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: authData.signupForm.email.value,
-          password: authData.signupForm.password.value,
-          name: authData.signupForm.name.value
-        })
+        body: JSON.stringify(graphqlQuery)
       })
-
-      if (res.status === 422) {
-        throw new Error(
-          "Validation failed. Make sure the email address isn't used yet!"
-        )
-      }
-
-      if (res.status !== 200 && res.status !== 201) {
-        console.log('Error!')
-        throw new Error('Creating a user failed!')
-      }
-
+      
       const resData = await res.json()
+      if (resData.errors && resData.errors[0].statusCode === 422) {
+        throw new Error("Validation failed. Make sure the email address isn't used yet!")
+      }
+      if (resData.errors) {
+        throw new Error('User creation failed')
+      }
+
       console.log(resData)
       this.setState({ isAuth: false, authLoading: false })
       this.props.history.replace('/')

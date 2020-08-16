@@ -14,7 +14,7 @@ export function validateSignup(userInput: UserInputData) {
   }
 
   if (
-    !validator.isEmpty(userInput.password) ||
+    validator.isEmpty(userInput.password) ||
     !validator.isLength(userInput.password, { min: 5 })
   ) {
     inputErrors.push({ message: 'Password too short' })

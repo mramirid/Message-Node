@@ -6,7 +6,7 @@ import { validateSignup } from './validations'
 import User from '../models/User'
 
 export default {
-  createUser: async ({ userInput }: CreateUserResolverArgs, req: RequestInfo) => {
+  async createUser ({ userInput }: CreateUserResolverArgs, req: RequestInfo) {
     const inputErrors = validateSignup(userInput)
     if (inputErrors.length > 0) {
       const error = new Error('Invalid input')

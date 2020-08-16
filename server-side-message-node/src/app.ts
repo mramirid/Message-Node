@@ -60,10 +60,15 @@ app.use(multer({
 
 /* -------------- Setup our middlewares ------------------ */
 
-app.use((_, res, next) => {
+app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
+  res.setHeader('Access-Control-Allow-Methods', 'POST')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200)
+  }
+
   next()
 })
 
@@ -72,12 +77,15 @@ app.use('/graphql', graphqlHTTP({
   rootValue: graphqlResolver,
   graphiql: true,
   customFormatErrorFn(error) {
-    if (!error.originalError) {
-      return error
-    }
+    if (!error.originalError) return error
+
     const message = error.originalError.message || 'An error occurred'
     const statusCode = error.originalError.statusCode || 500
-    return { message, statusCode, data: error.originalError.inputErrors }
+    return {
+      message,
+      statusCode,
+      data: error.originalError.inputErrors
+    }
   }
 }))
 
