@@ -1,14 +1,30 @@
 import { buildSchema } from 'graphql'
 
+/* ------ Base input/output types --- */
+
 export interface UserInputData {
   email: string
   password: string
   name: string
 }
 
+export interface AuthData {
+  token: string
+  userId: string
+}
+
+/* ------ Argument types for resolver functions --- */
+
 export interface CreateUserResolverArgs {
   userInput: UserInputData
 }
+
+export interface LoginResolverArgs {
+  email: string
+  password: string
+}
+
+/* ------ Create our graphql schema --- */
 
 export default buildSchema(`
   type Post {
@@ -30,6 +46,11 @@ export default buildSchema(`
     posts: [Post!]!
   }
 
+  type AuthData {
+    token: String!
+    userId: String!
+  }
+
   input UserInputData {
     email: String!
     password: String!
@@ -41,7 +62,7 @@ export default buildSchema(`
   }
 
   type QueryResolvers {
-    hello: String
+    login(email: String!, password: String!): AuthData
   }
 
   schema {
