@@ -7,13 +7,12 @@ import mongoose, { Types } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 import multer from 'multer'
 import { ValidationError } from 'express-validator/src/base'
+import { graphqlHTTP } from 'express-graphql'
 
-import AppSocket from './utils/AppSocket'
 import activeDir from './utils/active-dir'
-import feedRoutes from './routes/feed'
-import authRoutes from './routes/auth'
-import userRoutes from './routes/user'
 import * as errorController from './controllers/error'
+import graphqlSchema from './graphql/schema'
+import graphqlResolver from './graphql/resolvers'
 
 /* ------------ Customize built-in interfaces ------------ */
 
@@ -68,9 +67,11 @@ app.use((_, res, next) => {
   next()
 })
 
-app.use('/feed', feedRoutes)
-app.use('/auth', authRoutes)
-app.use('/user', userRoutes)
+app.use('/graphql', graphqlHTTP({
+  schema: graphqlSchema,
+  rootValue: graphqlResolver
+}))
+
 app.use(errorController.serverErrorHandler)
 
 /* ------- Setup MongoDB connection & start sever -------- */
@@ -86,11 +87,7 @@ mongoose.connect(MONGODB_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(_ => {
-  const server = app.listen(8080)
-  const io = AppSocket.init(server)
-  io.on('connection', _ => {
-    console.log('Client connected')
-  })
+  app.listen(8080)
 }).catch(error => {
   console.log(error)
 })
