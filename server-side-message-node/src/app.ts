@@ -6,20 +6,20 @@ import dotenv from 'dotenv'
 import mongoose, { Types } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 import multer from 'multer'
-import { ValidationError } from 'express-validator/src/base'
 import { graphqlHTTP } from 'express-graphql'
 
 import activeDir from './utils/active-dir'
 import * as errorController from './controllers/error'
 import graphqlSchema from './graphql/schema'
 import graphqlResolver from './graphql/resolvers'
+import { InputError } from './graphql/validations'
 
 /* ------------ Customize built-in interfaces ------------ */
 
 declare global {
   export interface Error {
     statusCode?: number
-    inputErrors?: ValidationError[]
+    inputErrors?: InputError[]
   }
 
   namespace Express {
@@ -69,7 +69,16 @@ app.use((_, res, next) => {
 
 app.use('/graphql', graphqlHTTP({
   schema: graphqlSchema,
-  rootValue: graphqlResolver
+  rootValue: graphqlResolver,
+  graphiql: true,
+  customFormatErrorFn(error) {
+    if (!error.originalError) {
+      return error
+    }
+    const message = error.originalError.message || 'An error occurred'
+    const statusCode = error.originalError.statusCode || 500
+    return { message, statusCode, data: error.originalError.inputErrors }
+  }
 }))
 
 app.use(errorController.serverErrorHandler)
