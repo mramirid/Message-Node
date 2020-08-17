@@ -1,10 +1,15 @@
 import { ErrorRequestHandler } from 'express'
 
 const serverErrorHandler: ErrorRequestHandler = (err, _, res, __) => {
-  console.log(err.statusCode || 500, err.message)
-  res.status(err.statusCode || 500).json({
-    message: err.message,
-    data: err.inputErrors
+  const statusCode = err.statusCode || 500
+  const message = err.message || 'Internal server error'
+  const inputErrors = err.inputErrors || []
+
+  console.log(statusCode, message)
+
+  res.status(statusCode).json({
+    message: message,
+    data: inputErrors
   })
 }
 

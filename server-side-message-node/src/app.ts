@@ -6,9 +6,11 @@ import dotenv from 'dotenv'
 import mongoose, { Types } from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 import multer from 'multer'
+import slash from 'slash'
 import { graphqlHTTP } from 'express-graphql'
 
 import activeDir from './utils/active-dir'
+import removeImage from './utils/remove-image'
 import serverErrorHandler from './middlewares/server-error'
 import verifyJWT from './middlewares/verify-jwt'
 import graphqlSchema from './graphql/schema'
@@ -64,7 +66,7 @@ app.use(multer({
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000')
-  res.setHeader('Access-Control-Allow-Methods', 'POST')
+  res.setHeader('Access-Control-Allow-Methods', 'POST, PUT')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
   if (req.method === 'OPTIONS') {
@@ -75,6 +77,34 @@ app.use((req, res, next) => {
 })
 
 app.use(verifyJWT)
+
+app.put('/post-image', async (req, res, next) => {
+  try {
+    if (!req.isAuth) {
+      const error = new Error('Not authenticated')
+      error.statusCode = 401
+      throw error
+    }
+    
+    if (!req.file) {
+      const error = new Error('No image provided')
+      error.statusCode = 200
+      throw error
+    }
+
+    if (req.body.oldPath) {
+      await removeImage(req.body.oldPath)
+    }
+
+    return res.status(201).json({
+      message: 'File stored',
+      filePath: slash(req.file.path)
+    })
+
+  } catch (error) {
+    throw error
+  }
+})
 
 app.use('/graphql', graphqlHTTP({
   schema: graphqlSchema,

@@ -63,6 +63,7 @@ class Feed extends Component {
               _id
               title
               content
+              imageUrl
               creator {
                 name
               }
@@ -156,34 +157,43 @@ class Feed extends Component {
     })
 
     const formData = new FormData()
-    formData.append('title', postData.title)
-    formData.append('content', postData.content)
     formData.append('image', postData.image)
-
-    let graphqlQuery = {
-      query: `
-        mutation {
-          createPost(
-            postInput: {
-              title: "${postData.title}", 
-              content: "${postData.content}", 
-              imageUrl: "https://i.ytimg.com/vi/IEMUI4VmXjg/maxresdefault.jpg"
-            }
-          ) {
-            _id
-            title
-            content
-            imageUrl
-            creator {
-              name
-            }
-            createdAt
-          }
-        }
-      `
+    if (this.state.editPost) {
+      formData.append('oldPath', this.state.editPost.imagePath)
     }
 
     try {
+      const imgUploadRes = await fetch('http://localhost:8080/post-image', {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${this.props.token}` },
+        body: formData
+      })
+      const imgUploadResData = await imgUploadRes.json()
+      const imageUrl = imgUploadResData.filePath
+
+      const graphqlQuery = {
+        query: `
+          mutation {
+            createPost(
+              postInput: {
+                title: "${postData.title}", 
+                content: "${postData.content}", 
+                imageUrl: "${imageUrl}"
+              }
+            ) {
+              _id
+              title
+              content
+              imageUrl
+              creator {
+                name
+              }
+              createdAt
+            }
+          }
+        `
+      }
+      
       const res = await fetch('http://localhost:8080/graphql', {
         method: 'POST',
         headers: {
@@ -207,6 +217,7 @@ class Feed extends Component {
         _id: resData.data.createPost._id,
         title: resData.data.createPost.title,
         content: resData.data.createPost.content,
+        imagePath: resData.data.createPost.imageUrl,
         creator: resData.data.createPost.creator.name,
         createdAt: resData.data.createPost.createdAt
       }
