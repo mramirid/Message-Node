@@ -1,5 +1,7 @@
 import { buildSchema } from 'graphql'
 
+import { IPost } from '../models/Post'
+
 /* ------ Base input/output types --- */
 
 export interface UserInputData {
@@ -8,9 +10,20 @@ export interface UserInputData {
   name: string
 }
 
-export interface AuthData {
+export interface PostInputData {
+  title: string
+  content: string
+  imageUrl: string
+}
+
+export interface JwtAuthData {
   token: string
   userId: string
+}
+
+export interface PostsData {
+  posts: IPost[]
+  totalPosts: number
 }
 
 /* ------ Argument types for resolver functions --- */
@@ -24,9 +37,26 @@ export interface LoginResolverArgs {
   password: string
 }
 
+export interface CreatePostResolverArgs {
+  postInput: PostInputData
+}
+
+export interface PostsResolverArgs {
+  page?: number
+}
+
 /* ------ Create our graphql schema --- */
 
 export default buildSchema(`
+  type User {
+    _id: ID!
+    name: String!
+    email: String!
+    password: String
+    status: String!
+    posts: [Post!]!
+  }
+
   type Post {
     _id: ID!
     title: String!
@@ -37,32 +67,36 @@ export default buildSchema(`
     updatedAt: String!
   }
 
-  type User {
-    _id: ID!
-    name: String!
-    email: String!
-    password: String
-    status: String!
-    posts: [Post!]!
-  }
-
-  type AuthData {
-    token: String!
-    userId: String!
-  }
-
   input UserInputData {
     email: String!
     password: String!
     name: String!
   }
 
+  input PostInputData {
+    title: String!
+    content: String!
+    imageUrl: String!
+  }
+
+  type JwtAuthData {
+    token: String!
+    userId: String!
+  }
+
+  type PostsData {
+    posts: [Post!]!
+    totalPosts: Int!
+  }
+
   type MutationResolvers {
     createUser(userInput: UserInputData): User!
+    createPost(postInput: PostInputData): Post!
   }
 
   type QueryResolvers {
-    login(email: String!, password: String!): AuthData
+    login(email: String!, password: String!): JwtAuthData
+    posts(page: Int): PostsData!
   }
 
   schema {

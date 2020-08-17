@@ -55,9 +55,33 @@ class Feed extends Component {
       this.setState({ postPage: page })
     }
 
+    const graphqlQuery = {
+      query: `
+        {
+          posts(page: ${page}) {
+            posts {
+              _id
+              title
+              content
+              creator {
+                name
+              }
+              createdAt
+            }
+            totalPosts
+          }
+        }
+      `
+    }
+
     try {
-      const res = await fetch(`http://localhost:8080/feed/posts?page=${page}`, {
-        headers: { Authorization: `Bearer ${this.props.token}` }
+      const res = await fetch('http://localhost:8080/graphql', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.props.token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(graphqlQuery)
       })
 
       if (res.status !== 200) {
@@ -65,14 +89,15 @@ class Feed extends Component {
       }
 
       const resData = await res.json()
+      console.log(resData)
       this.setState({
-        posts: resData.posts.map(post => {
+        posts: resData.data.posts.posts.map(post => {
           return {
             ...post,
             imagePath: post.imageUrl
           }
         }),
-        totalPosts: resData.totalItems,
+        totalPosts: resData.data.posts.totalPosts,
         postsLoading: false
       })
 
@@ -94,11 +119,11 @@ class Feed extends Component {
         body: JSON.stringify({ status: this.state.status })
       })
 
-      if (res.status !== 200 && res.status !== 201) {
-        throw new Error("Can't update status!")
+      const resData = await res.json()
+      if (resData.errors) {
+        throw new Error('Fetching posts failed')
       }
 
-      const resData = await res.json()
       console.log(resData)
 
     } catch (error) {
@@ -135,36 +160,72 @@ class Feed extends Component {
     formData.append('content', postData.content)
     formData.append('image', postData.image)
 
-    let method = 'POST'
-    let url = 'http://localhost:8080/feed/post'
-    if (this.state.editPost) {
-      method = 'PUT'
-      url = `http://localhost:8080/feed/post/${this.state.editPost._id}`
+    let graphqlQuery = {
+      query: `
+        mutation {
+          createPost(
+            postInput: {
+              title: "${postData.title}", 
+              content: "${postData.content}", 
+              imageUrl: "https://i.ytimg.com/vi/IEMUI4VmXjg/maxresdefault.jpg"
+            }
+          ) {
+            _id
+            title
+            content
+            imageUrl
+            creator {
+              name
+            }
+            createdAt
+          }
+        }
+      `
     }
 
     try {
-      const res = await fetch(url, {
-        method,
-        headers: { Authorization: `Bearer ${this.props.token}` },
-        body: formData
+      const res = await fetch('http://localhost:8080/graphql', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.props.token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(graphqlQuery)
       })
 
-      if (res.status !== 200 && res.status !== 201) {
-        throw new Error('Creating or editing a post failed!')
-      }
-
       const resData = await res.json()
-      console.log(resData)
-      const post = {
-        _id: resData.post._id,
-        title: resData.post.title,
-        content: resData.post.content,
-        creator: resData.post.creator,
-        createdAt: resData.post.createdAt
+      if (resData.errors && resData.errors[0].statusCode === 422) {
+        throw new Error('Validation failed.')
+      }
+      if (resData.errors) {
+        throw new Error('Could not create post')
       }
 
-      this.setState(_ => {
+      console.log(resData)
+
+      const post = {
+        _id: resData.data.createPost._id,
+        title: resData.data.createPost.title,
+        content: resData.data.createPost.content,
+        creator: resData.data.createPost.creator.name,
+        createdAt: resData.data.createPost.createdAt
+      }
+
+      this.setState(prevState => {
+        let updatedPosts = [...prevState.posts]
+
+        if (prevState.editPost) {
+          const postIndex = prevState.posts.findIndex(
+            p => p._id === prevState.editPost._id
+          )
+          updatedPosts[postIndex] = post
+        } else {
+          updatedPosts.pop()
+          updatedPosts.unshift(post)
+        }
+
         return {
+          posts: updatedPosts,
           isEditing: false,
           editPost: null,
           editLoading: false

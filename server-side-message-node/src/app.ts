@@ -9,7 +9,8 @@ import multer from 'multer'
 import { graphqlHTTP } from 'express-graphql'
 
 import activeDir from './utils/active-dir'
-import * as errorController from './controllers/error'
+import serverErrorHandler from './middlewares/server-error'
+import verifyJWT from './middlewares/verify-jwt'
 import graphqlSchema from './graphql/schema'
 import graphqlResolver from './graphql/resolvers'
 import { InputError } from './graphql/validations'
@@ -18,13 +19,14 @@ import { InputError } from './graphql/validations'
 
 declare global {
   export interface Error {
-    statusCode?: number
-    inputErrors?: InputError[]
+    statusCode: number
+    inputErrors: InputError[]
   }
 
   namespace Express {
     export interface Request {
       userId: Types.ObjectId
+      isAuth: boolean
     }
   }
 }
@@ -72,6 +74,8 @@ app.use((req, res, next) => {
   next()
 })
 
+app.use(verifyJWT)
+
 app.use('/graphql', graphqlHTTP({
   schema: graphqlSchema,
   rootValue: graphqlResolver,
@@ -89,7 +93,7 @@ app.use('/graphql', graphqlHTTP({
   }
 }))
 
-app.use(errorController.serverErrorHandler)
+app.use(serverErrorHandler)
 
 /* ------- Setup MongoDB connection & start sever -------- */
 
