@@ -1,31 +1,22 @@
-import { Request } from 'express'
 import bcrypt from 'bcryptjs'
 import dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
 
-import {
-  CreateUserResolverArgs,
-  LoginResolverArgs,
-  JwtAuthData,
-  CreatePostResolverArgs,
-  PostsData,
-  PostsResolverArgs,
-  PostResolverArgs,
-  UpdatePostResolverArgs
-} from './schema'
+import { MyResolver } from './schema'
 import {
   validateSignup,
   validateLogin,
   validateCreatePost,
   validateUpdatePost
 } from './validations'
-import User, { IUser } from '../models/User'
-import Post, { IPost } from '../models/Post'
+import User from '../models/User'
+import Post from '../models/Post'
+import removeImage from '../utils/remove-image'
 
 dotenv.config()
 
-export default {
-  async createUser({ userInput }: CreateUserResolverArgs): Promise<IUser> {
+const myResolver: MyResolver = {
+  async createUser({ userInput }) {
     const inputErrors = validateSignup(userInput)
     if (inputErrors.length > 0) {
       const error = new Error('Invalid input')
@@ -51,7 +42,7 @@ export default {
     }
   },
 
-  async login({ email, password }: LoginResolverArgs): Promise<JwtAuthData> {
+  async login({ email, password }) {
     const inputErrors = validateLogin(email, password)
     if (inputErrors.length > 0) {
       const error = new Error('Invalid input')
@@ -89,7 +80,7 @@ export default {
     }
   },
 
-  async createPost({ postInput }: CreatePostResolverArgs, req: Request): Promise<IPost> {
+  async createPost({ postInput }, req) {
     if (!req.isAuth) {
       const error = new Error('Not authenticated')
       error.statusCode = 401
@@ -129,7 +120,7 @@ export default {
     }
   },
 
-  async posts({ page }: PostsResolverArgs, req: Request): Promise<PostsData> {
+  async posts({ page }, req) {
     if (!req.isAuth) {
       const error = new Error('Not authenticated')
       error.statusCode = 401
@@ -161,7 +152,7 @@ export default {
     }
   },
 
-  async post({ id }: PostResolverArgs, req: Request): Promise<IPost> {
+  async post({ id }, req) {
     if (!req.isAuth) {
       const error = new Error('Not authenticated')
       error.statusCode = 401
@@ -183,7 +174,7 @@ export default {
     }
   },
 
-  async updatePost({ id, postInput }: UpdatePostResolverArgs, req: Request): Promise<IPost> {
+  async updatePost({ id, postInput }, req) {
     if (!req.isAuth) {
       const error = new Error('Not authenticated')
       error.statusCode = 401
@@ -224,5 +215,39 @@ export default {
       createdAt: updatedPost.createdAt.toISOString(),
       updatedAt: updatedPost.updatedAt.toISOString()
     }
+  },
+
+  async deletePost({ id }, req) {
+    if (!req.isAuth) {
+      const error = new Error('Not authenticated')
+      error.statusCode = 401
+      throw error
+    }
+
+    const post = await Post.findById(id)
+    if (!post) {
+      const error = new Error('Post not found')
+      error.statusCode = 404
+      throw error
+    }
+
+    if (post.creator.toString() !== req.userId.toString()) {
+      const error = new Error('Not authorized')
+      error.statusCode = 403
+      throw error
+    }
+
+    const deleteImageUrl = post.imageUrl
+    const [user] = await Promise.all([
+      User.findById(req.userId),
+      Post.findByIdAndRemove(id),
+      removeImage(deleteImageUrl)
+    ])
+    user!.posts.pull(id)
+    await user!.save()
+
+    return true
   }
 }
+
+export default myResolver

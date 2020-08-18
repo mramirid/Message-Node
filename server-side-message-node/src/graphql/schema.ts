@@ -1,6 +1,8 @@
+import { Request } from 'express'
 import { buildSchema } from 'graphql'
 
 import { IPost } from '../models/Post'
+import { IUser } from '../models/User'
 
 /* ------ Base input/output types --- */
 
@@ -26,19 +28,48 @@ export interface PostsData {
   totalPosts: number
 }
 
-/* ------ Argument types for resolver functions --- */
+/* ------ Types for resolver functions --- */
 
-export type CreateUserResolverArgs = { userInput: UserInputData }
+interface MutationResolvers {
+  createUser(
+    args: { userInput: UserInputData },
+    req: Request
+  ): Promise<IUser>
 
-export type LoginResolverArgs = { email: string; password: string }
+  createPost(
+    args: { postInput: PostInputData },
+    req: Request
+  ): Promise<IPost>
 
-export type CreatePostResolverArgs = { postInput: PostInputData }
+  updatePost(
+    args: { id: string; postInput: PostInputData },
+    req: Request
+  ): Promise<IPost>
 
-export type PostsResolverArgs = { page?: number }
+  deletePost(
+    args: { id: string },
+    req: Request
+  ): Promise<boolean>
+}
 
-export type PostResolverArgs = { id: string }
+interface QueryResolvers {
+  login(
+    args: { email: string; password: string },
+    req: Request
+  ): Promise<JwtAuthData>
 
-export type UpdatePostResolverArgs = { id: string; postInput: PostInputData }
+  posts(
+    args: { page?: number },
+    req: Request
+  ): Promise<PostsData>
+
+  post(
+    args: { id: string },
+    req: Request
+  ): Promise<IPost>
+}
+
+export interface MyResolver extends MutationResolvers, QueryResolvers { }
 
 /* ------ Create our graphql schema --- */
 
@@ -88,6 +119,7 @@ export default buildSchema(`
     createUser(userInput: UserInputData): User!
     createPost(postInput: PostInputData): Post!
     updatePost(id: ID!, postInput: PostInputData): Post!
+    deletePost(id: ID!): Boolean
   }
 
   type QueryResolvers {
