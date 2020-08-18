@@ -28,13 +28,12 @@ class App extends Component {
   componentDidMount() {
     const token = localStorage.getItem('token')
     const expiryDate = localStorage.getItem('expiryDate')
-    if (!token || !expiryDate) {
-      return
-    }
+    if (!token || !expiryDate) return
     if (new Date(expiryDate) <= new Date()) {
       this.logoutHandler()
       return
     }
+    
     const userId = localStorage.getItem('userId')
     const remainingMilliseconds = new Date(expiryDate).getTime() - new Date().getTime()
     this.setState({ isAuth: true, token: token, userId: userId })
@@ -70,7 +69,7 @@ class App extends Component {
         }
       `
     }
-    
+
     try {
       const res = await fetch('http://localhost:8080/graphql', {
         method: 'POST',
@@ -85,8 +84,8 @@ class App extends Component {
       if (resData.errors) {
         throw new Error('Could not authenticate you!')
       }
+      console.log('Login:', resData)
 
-      console.log(resData)
       this.setState({
         isAuth: true,
         token: resData.data.login.token,
@@ -138,7 +137,7 @@ class App extends Component {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(graphqlQuery)
       })
-      
+
       const resData = await res.json()
       if (resData.errors && resData.errors[0].statusCode === 422) {
         throw new Error("Validation failed. Make sure the email address isn't used yet!")
@@ -146,8 +145,8 @@ class App extends Component {
       if (resData.errors) {
         throw new Error('User creation failed')
       }
+      console.log('Signup:', resData)
 
-      console.log(resData)
       this.setState({ isAuth: false, authLoading: false })
       this.props.history.replace('/')
 

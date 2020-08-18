@@ -45,6 +45,10 @@ export interface PostsResolverArgs {
   page?: number
 }
 
+export interface PostResolverArgs {
+  id: string
+}
+
 /* ------ Create our graphql schema --- */
 
 export default buildSchema(`
@@ -95,8 +99,9 @@ export default buildSchema(`
   }
 
   type QueryResolvers {
-    login(email: String!, password: String!): JwtAuthData
+    login(email: String!, password: String!): JwtAuthData!
     posts(page: Int): PostsData!
+    post(id: ID!): Post!
   }
 
   schema {

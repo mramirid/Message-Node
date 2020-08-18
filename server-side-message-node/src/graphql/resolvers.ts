@@ -9,7 +9,8 @@ import {
   JwtAuthData,
   CreatePostResolverArgs,
   PostsData,
-  PostsResolverArgs
+  PostsResolverArgs,
+  PostResolverArgs
 } from './schema'
 import {
   validateSignup,
@@ -155,6 +156,28 @@ export default {
         }
       }),
       totalPosts
+    }
+  },
+
+  async post({ id }: PostResolverArgs, req: Request): Promise<IPost> {
+    if (!req.isAuth) {
+      const error = new Error('Not authenticated')
+      error.statusCode = 401
+      throw error
+    }
+
+    const post = await Post.findById(id).populate('creator')
+    if (!post) {
+      const error = new Error('Post not found')
+      error.statusCode = 404
+      throw error
+    }
+
+    return {
+      ...post.toObject(),
+      _id: post._id.toString(),
+      createdAt: post.createdAt.toISOString(),
+      updatedAt: post.updatedAt.toISOString()
     }
   }
 }

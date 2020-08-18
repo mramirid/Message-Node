@@ -27,7 +27,6 @@ class Feed extends Component {
       const res = await fetch('http://localhost:8080/user/status', {
         headers: { Authorization: `Bearer ${this.props.token}` }
       })
-
       if (res.status !== 200) {
         throw new Error('Failed to fetch user status.')
       }
@@ -84,13 +83,12 @@ class Feed extends Component {
         },
         body: JSON.stringify(graphqlQuery)
       })
-
       if (res.status !== 200) {
         throw new Error('Failed to fetch posts.')
       }
 
       const resData = await res.json()
-      console.log(resData)
+      console.log('Posts:', resData)
       this.setState({
         posts: resData.data.posts.posts.map(post => {
           return {
@@ -124,7 +122,6 @@ class Feed extends Component {
       if (resData.errors) {
         throw new Error('Fetching posts failed')
       }
-
       console.log(resData)
 
     } catch (error) {
@@ -193,7 +190,7 @@ class Feed extends Component {
           }
         `
       }
-      
+
       const res = await fetch('http://localhost:8080/graphql', {
         method: 'POST',
         headers: {
@@ -210,8 +207,7 @@ class Feed extends Component {
       if (resData.errors) {
         throw new Error('Could not create post')
       }
-
-      console.log(resData)
+      console.log('Edit post:', resData)
 
       const post = {
         _id: resData.data.createPost._id,
@@ -266,13 +262,12 @@ class Feed extends Component {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${this.props.token}` }
       })
-
       if (res.status !== 200 && res.status !== 201) {
         throw new Error('Deleting a post failed!')
       }
 
       const resData = await res.json()
-      console.log(resData)
+      console.log('Delete post:', resData)
       this.loadPosts()
       // this.setState(prevState => {
       //   const updatedPosts = prevState.posts.filter(p => p._id !== postId)
