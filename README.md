@@ -1,6 +1,6 @@
 # Message Node
 
-Simple realtime social network app built with MERN stack
+Simple social network app built with MERN stack (Including REST API & GraphQL)
 
 ## Tags in commit history
 
