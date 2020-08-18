@@ -50,6 +50,11 @@ interface MutationResolvers {
     args: { id: string },
     req: Request
   ): Promise<boolean>
+
+  updateStatus(
+    args: { status: string },
+    req: Request
+  ): Promise<IUser>
 }
 
 interface QueryResolvers {
@@ -67,6 +72,11 @@ interface QueryResolvers {
     args: { id: string },
     req: Request
   ): Promise<IPost>
+
+  user(
+    _: unknown,
+    req: Request
+  ): Promise<IUser>
 }
 
 export interface MyResolver extends MutationResolvers, QueryResolvers { }
@@ -120,12 +130,14 @@ export default buildSchema(`
     createPost(postInput: PostInputData): Post!
     updatePost(id: ID!, postInput: PostInputData): Post!
     deletePost(id: ID!): Boolean
+    updateStatus(status: String!): User!
   }
 
   type QueryResolvers {
     login(email: String!, password: String!): JwtAuthData!
     posts(page: Int): PostsData!
     post(id: ID!): Post!
+    user: User!
   }
 
   schema {

@@ -7,3 +7,5 @@ Simple realtime social network app built with MERN stack
 - Module 25 - REST APIs
 
 - Module 27 - Websocket & Socket.io
+
+- Module 28 - GraphQL

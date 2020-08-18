@@ -247,6 +247,49 @@ const myResolver: MyResolver = {
     await user!.save()
 
     return true
+  },
+
+  async user(_, req) {
+    if (!req.isAuth) {
+      const error = new Error('Not authenticated')
+      error.statusCode = 401
+      throw error
+    }
+
+    const user = await User.findById(req.userId)
+    if (!user) {
+      const error = new Error('User not found')
+      error.statusCode = 401
+      throw error
+    }
+
+    return {
+      ...user.toObject(),
+      _id: user._id.toString()
+    }
+  },
+
+  async updateStatus({ status }, req) {
+    if (!req.isAuth) {
+      const error = new Error('Not authenticated')
+      error.statusCode = 401
+      throw error
+    }
+
+    const user = await User.findById(req.userId)
+    if (!user) {
+      const error = new Error('User not found')
+      error.statusCode = 401
+      throw error
+    }
+
+    user.status = status
+    await user.save()
+
+    return {
+      ...user.toObject(),
+      _id: user._id.toString()
+    }
   }
 }
 

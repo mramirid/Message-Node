@@ -24,16 +24,30 @@ class Feed extends Component {
 
   async componentDidMount() {
     try {
-      const res = await fetch('http://localhost:8080/user/status', {
-        headers: { Authorization: `Bearer ${this.props.token}` }
-      })
-      if (res.status !== 200) {
-        throw new Error('Failed to fetch user status.')
+      const graphqlQuery = {
+        query: `
+          {
+            user {
+              status
+            }
+          }
+        `
       }
+      const res = await fetch('http://localhost:8080/graphql', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.props.token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(graphqlQuery)
+      })
 
       const resData = await res.json()
+      if (resData.errors) {
+        throw new Error('Could not fetch user status')
+      }
       console.log(resData)
-      this.setState({ status: resData.status })
+      this.setState({ status: resData.data.user.status })
 
     } catch (error) {
       this.catchError(error)
@@ -109,18 +123,27 @@ class Feed extends Component {
     event.preventDefault()
 
     try {
-      const res = await fetch('http://localhost:8080/user/status', {
-        method: 'PUT',
+      const graphqlQuery = {
+        query: `
+          mutation {
+            updateStatus(status: "${this.state.status}") {
+              status
+            }
+          }
+        `
+      }
+      const res = await fetch('http://localhost:8080/graphql', {
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${this.props.token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ status: this.state.status })
+        body: JSON.stringify(graphqlQuery)
       })
 
       const resData = await res.json()
       if (resData.errors) {
-        throw new Error('Fetching posts failed')
+        throw new Error('Fetching user status failed')
       }
       console.log(resData)
 
