@@ -10,12 +10,14 @@ import {
   CreatePostResolverArgs,
   PostsData,
   PostsResolverArgs,
-  PostResolverArgs
+  PostResolverArgs,
+  UpdatePostResolverArgs
 } from './schema'
 import {
   validateSignup,
   validateLogin,
-  validateCreatePost
+  validateCreatePost,
+  validateUpdatePost
 } from './validations'
 import User, { IUser } from '../models/User'
 import Post, { IPost } from '../models/Post'
@@ -178,6 +180,49 @@ export default {
       _id: post._id.toString(),
       createdAt: post.createdAt.toISOString(),
       updatedAt: post.updatedAt.toISOString()
+    }
+  },
+
+  async updatePost({ id, postInput }: UpdatePostResolverArgs, req: Request): Promise<IPost> {
+    if (!req.isAuth) {
+      const error = new Error('Not authenticated')
+      error.statusCode = 401
+      throw error
+    }
+
+    const post = await Post.findById(id).populate('creator')
+    if (!post) {
+      const error = new Error('Post not found')
+      error.statusCode = 404
+      throw error
+    }
+
+    if (post.creator._id.toString() !== req.userId.toString()) {
+      const error = new Error('Not authorized')
+      error.statusCode = 403
+      throw error
+    }
+
+    const inputErrors = validateUpdatePost(postInput)
+    if (inputErrors.length > 0) {
+      const error = new Error('Invalid input')
+      error.inputErrors = inputErrors
+      error.statusCode = 422
+      throw error
+    }
+
+    post.title = postInput.title
+    post.content = postInput.content
+    if (post.imageUrl !== postInput.imageUrl) {
+      post.imageUrl = postInput.imageUrl
+    }
+    const updatedPost = await post.save()
+
+    return {
+      ...updatedPost.toObject(),
+      _id: updatedPost._id.toString(),
+      createdAt: updatedPost.createdAt.toISOString(),
+      updatedAt: updatedPost.updatedAt.toISOString()
     }
   }
 }

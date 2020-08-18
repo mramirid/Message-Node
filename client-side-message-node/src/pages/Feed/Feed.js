@@ -165,30 +165,59 @@ class Feed extends Component {
         headers: { Authorization: `Bearer ${this.props.token}` },
         body: formData
       })
-      const imgUploadResData = await imgUploadRes.json()
-      const imageUrl = imgUploadResData.filePath
+      if (imgUploadRes.status === 401 || imgUploadRes.status === 500) {
+        throw new Error('Could not upload image')
+      }
 
-      const graphqlQuery = {
-        query: `
-          mutation {
-            createPost(
-              postInput: {
-                title: "${postData.title}", 
-                content: "${postData.content}", 
-                imageUrl: "${imageUrl}"
+      const imgUploadResData = await imgUploadRes.json()
+      const imageUrl = imgUploadResData.newFilePath || this.state.editPost.imagePath
+      if (this.state.editPost) {
+        var graphqlQuery = {
+          query: `
+            mutation {
+              updatePost(
+                id: "${this.state.editPost._id}",
+                postInput: {
+                  title: "${postData.title}", 
+                  content: "${postData.content}", 
+                  imageUrl: "${imageUrl}"
+                }
+              ) {
+                _id
+                title
+                content
+                imageUrl
+                creator {
+                  name
+                }
+                createdAt
               }
-            ) {
-              _id
-              title
-              content
-              imageUrl
-              creator {
-                name
-              }
-              createdAt
             }
-          }
-        `
+          `
+        }
+      } else {
+        var graphqlQuery = {
+          query: `
+            mutation {
+              createPost(
+                postInput: {
+                  title: "${postData.title}", 
+                  content: "${postData.content}", 
+                  imageUrl: "${imageUrl}"
+                }
+              ) {
+                _id
+                title
+                content
+                imageUrl
+                creator {
+                  name
+                }
+                createdAt
+              }
+            }
+          `
+        }
       }
 
       const res = await fetch('http://localhost:8080/graphql', {
@@ -205,17 +234,18 @@ class Feed extends Component {
         throw new Error('Validation failed.')
       }
       if (resData.errors) {
-        throw new Error('Could not create post')
+        throw new Error(this.state.editPost ? 'Could not update post' : 'Could not create post')
       }
       console.log('Edit post:', resData)
 
+      const resDataField = this.state.editPost ? 'updatePost' : 'createPost'
       const post = {
-        _id: resData.data.createPost._id,
-        title: resData.data.createPost.title,
-        content: resData.data.createPost.content,
-        imagePath: resData.data.createPost.imageUrl,
-        creator: resData.data.createPost.creator.name,
-        createdAt: resData.data.createPost.createdAt
+        _id: resData.data[resDataField]._id,
+        title: resData.data[resDataField].title,
+        content: resData.data[resDataField].content,
+        imagePath: resData.data[resDataField].imageUrl,
+        creator: resData.data[resDataField].creator.name,
+        createdAt: resData.data[resDataField].createdAt
       }
 
       this.setState(prevState => {

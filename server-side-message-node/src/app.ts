@@ -85,11 +85,9 @@ app.put('/post-image', async (req, res, next) => {
       error.statusCode = 401
       throw error
     }
-    
+
     if (!req.file) {
-      const error = new Error('No image provided')
-      error.statusCode = 200
-      throw error
+      return res.status(200).json({ message: 'No image provided' })
     }
 
     if (req.body.oldPath) {
@@ -98,11 +96,11 @@ app.put('/post-image', async (req, res, next) => {
 
     return res.status(201).json({
       message: 'File stored',
-      filePath: slash(req.file.path)
+      newFilePath: slash(req.file.path)
     })
 
   } catch (error) {
-    throw error
+    next(error)
   }
 })
 

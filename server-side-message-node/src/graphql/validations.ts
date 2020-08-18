@@ -53,6 +53,31 @@ export function validateCreatePost(postInput: PostInputData) {
   ) {
     inputErrors.push({ message: 'Content is invalid' })
   }
+  if (validator.isEmpty(postInput.imageUrl)) {
+    inputErrors.push({ message: 'Image url is required' })
+  }
 
+  return inputErrors
+}
+
+export function validateUpdatePost(postInput: PostInputData) {
+  const inputErrors: InputError[] = []
+
+  if (
+    validator.isEmpty(postInput.title) ||
+    !validator.isLength(postInput.title, { min: 5 })
+  ) {
+    inputErrors.push({ message: 'Title is invalid' })
+  }
+  if (
+    validator.isEmpty(postInput.content) ||
+    !validator.isLength(postInput.content, { min: 5 })
+  ) {
+    inputErrors.push({ message: 'Content is invalid' })
+  }
+  if (validator.isEmpty(postInput.imageUrl)) {
+    inputErrors.push({ message: 'Image url is required' })
+  }
+  
   return inputErrors
 }

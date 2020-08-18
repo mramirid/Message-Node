@@ -28,26 +28,17 @@ export interface PostsData {
 
 /* ------ Argument types for resolver functions --- */
 
-export interface CreateUserResolverArgs {
-  userInput: UserInputData
-}
+export type CreateUserResolverArgs = { userInput: UserInputData }
 
-export interface LoginResolverArgs {
-  email: string
-  password: string
-}
+export type LoginResolverArgs = { email: string; password: string }
 
-export interface CreatePostResolverArgs {
-  postInput: PostInputData
-}
+export type CreatePostResolverArgs = { postInput: PostInputData }
 
-export interface PostsResolverArgs {
-  page?: number
-}
+export type PostsResolverArgs = { page?: number }
 
-export interface PostResolverArgs {
-  id: string
-}
+export type PostResolverArgs = { id: string }
+
+export type UpdatePostResolverArgs = { id: string; postInput: PostInputData }
 
 /* ------ Create our graphql schema --- */
 
@@ -96,6 +87,7 @@ export default buildSchema(`
   type MutationResolvers {
     createUser(userInput: UserInputData): User!
     createPost(postInput: PostInputData): Post!
+    updatePost(id: ID!, postInput: PostInputData): Post!
   }
 
   type QueryResolvers {
